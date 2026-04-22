@@ -1,0 +1,415 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base mobile ─────────────────────────────────────────────── */
+*, *::before, *::after {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent; /* sin flash azul al tocar */
+  box-sizing: border-box;
+}
+
+html {
+  /* Prevenir zoom accidental en doble-tap */
+  touch-action: manipulation;
+}
+
+body {
+  /* Evitar bounce/pull-to-refresh no deseado */
+  overscroll-behavior-y: none;
+  /* Fuente base legible en móvil */
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* iOS: quitar estilos nativos de inputs */
+input, textarea, select, button {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 0;
+}
+input[type="date"],
+input[type="time"],
+input[type="number"] {
+  -webkit-appearance: none;
+}
+
+/* Todos los botones: interacción táctil instantánea */
+button, a {
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+/* Animaciones */
+@keyframes leaf-sway {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  30%       { transform: rotate(1.8deg) scale(1.012); }
+  65%       { transform: rotate(-1.2deg) scale(0.992); }
+}
+@keyframes leaf-sway-alt {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  40%       { transform: rotate(-2deg) scale(1.01); }
+  70%       { transform: rotate(1deg) scale(0.995); }
+}
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in  { animation: fade-in  0.3s ease both; }
+.animate-slide-up { animation: slide-up 0.4s ease both; }
+
+/* ── Animación rebote UI ─────────────────────────────────────── */
+@keyframes jungle-bounce {
+  0%, 100% { transform: translateY(0px) rotate(-15deg) scale(1); }
+  25% { transform: translateY(-12px) rotate(-18deg) scale(1.05); }
+  50% { transform: translateY(-20px) rotate(-12deg) scale(1.1); }
+  75% { transform: translateY(-8px) rotate(-15deg) scale(1.05); }
+}
+
+.animate-bounce {
+  animation: jungle-bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+}
+
+/* ── Perspectiva 3D ──────────────────────────────────────────── */
+.perspective {
+  perspective: 1000px;
+}
+
+/* ── Partículas flotantes hero ───────────────────────────────── */
+@keyframes float-particle-up {
+  0%   { transform: translateY(0px) scale(1) rotate(0deg); opacity: 0; }
+  10%  { opacity: 1; }
+  85%  { opacity: 0.6; }
+  100% { transform: translateY(-100px) scale(0.4) rotate(360deg); opacity: 0; }
+}
+
+/* ── Orbs ambientales ────────────────────────────────────────── */
+@keyframes orb-float {
+  0%, 100% { transform: translate(0, 0) scale(1);    opacity: 0.10; }
+  33%       { transform: translate(20px, -25px) scale(1.12); opacity: 0.20; }
+  66%       { transform: translate(-15px, 12px) scale(0.93); opacity: 0.14; }
+}
+
+/* Ocultar scrollbar manteniendo scroll funcional */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
+@layer components {
+  /* ── Glass ──────────────────────────────────────────────── */
+  .glass {
+    background: rgba(5, 5, 5, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .glass-card {
+    background: rgba(10, 10, 10, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(245, 194, 0, 0.12);
+  }
+
+  .glass-card:hover {
+    border-color: rgba(245, 194, 0, 0.5);
+    box-shadow: 0 0 30px rgba(245, 194, 0, 0.2);
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, #F5C200 0%, #F97316 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glow-primary   { box-shadow: 0 0 40px rgba(245, 194, 0, 0.4), 0 0 80px rgba(245, 194, 0, 0.2); }
+  .glow-secondary { box-shadow: 0 0 40px rgba(249, 115, 22, 0.25); }
+
+  /* ── Botones ─────────────────────────────────────────────── */
+  /* min-height 48px: tamaño mínimo táctil recomendado por Google/Apple */
+  .btn-primary {
+    @apply inline-flex items-center justify-center bg-primary text-black font-black rounded-xl
+           hover:bg-yellow-400 transition-all duration-300 hover:scale-105 hover:shadow-lg
+           tracking-wide min-h-[48px] px-5 py-3;
+    box-shadow: 0 0 30px rgba(245, 194, 0, 0.25);
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 0.05em;
+    font-size: 1.05rem;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center bg-transparent border-2 border-primary
+           text-primary font-black rounded-xl hover:bg-primary hover:text-black
+           transition-all duration-300 hover:scale-105 min-h-[48px] px-5 py-3;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Inputs: 16px de fuente → iOS NO hace zoom al hacer focus ── */
+  .input-glass {
+    @apply bg-black/60 border border-white/10 text-white placeholder-zinc-600
+           rounded-xl px-4 w-full focus:outline-none focus:border-primary/60
+           focus:ring-1 focus:ring-primary/30 transition-all duration-300;
+    font-size: 16px;      /* crítico para iOS: sin esto el teclado hace zoom */
+    min-height: 48px;     /* tap target mínimo */
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    -webkit-appearance: none;
+  }
+  .input-glass::placeholder { color: rgb(82 82 82); }
+
+  /* Select igual que input */
+  select.input-glass {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.25em;
+    padding-right: 2.5rem;
+  }
+
+  /* ── Divisores ───────────────────────────────────────────── */
+  .jungle-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(245,194,0,0.3), transparent);
+  }
+
+  /* ── Título Jungla — gradiente rosa/azul ────────────────────── */
+  .jungle-title {
+    display: block;
+    font-family: 'Bebas Neue', sans-serif;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    line-height: 0.95;
+    background: linear-gradient(135deg, #c9960a 0%, #F5C200 28%, #ffe566 42%, #e8e8e8 62%, #b8b8b8 80%, #F5C200 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: hero-heartbeat 2.4s ease-in-out infinite;
+    will-change: filter;
+  }
+
+  @keyframes hero-heartbeat {
+    0%, 100% {
+      filter: drop-shadow(0 0 6px rgba(245, 194, 0, 0.3));
+    }
+    15% {
+      filter: drop-shadow(0 0 20px rgba(245, 194, 0, 0.75));
+    }
+    30% {
+      filter: drop-shadow(0 0 7px rgba(245, 194, 0, 0.32));
+    }
+    45% {
+      filter: drop-shadow(0 0 22px rgba(220, 220, 220, 0.55));
+    }
+    65%, 100% {
+      filter: drop-shadow(0 0 6px rgba(245, 194, 0, 0.3));
+    }
+  }
+
+  /* ── Fuegos artificiales del hero ─────────────────────────── */
+  .jungle-fireworks {
+    position: relative;
+    height: 0;
+    z-index: 2;
+  }
+
+  .jungle-firework {
+    position: absolute;
+    top: -0.5rem;
+    width: clamp(36px, 8vw, 64px);
+    aspect-ratio: 1 / 1;
+    border-radius: 999px;
+    background:
+      radial-gradient(circle, rgba(245, 194, 0, 0.85) 0 12%, transparent 13%),
+      radial-gradient(circle, rgba(251, 146, 60, 0.8) 0 8%, transparent 9%),
+      radial-gradient(circle, rgba(34, 197, 94, 0.8) 0 6%, transparent 7%);
+    box-shadow:
+      0 0 22px rgba(245, 194, 0, 0.65),
+      0 0 42px rgba(245, 194, 0, 0.35);
+    filter: drop-shadow(0 0 10px rgba(245, 194, 0, 0.55));
+    animation: firework-pop 1.8s ease-in-out infinite;
+    opacity: 0;
+  }
+
+  .jungle-firework--left {
+    left: 28%;
+    animation-delay: 0s;
+  }
+
+  .jungle-firework--center {
+    left: 50%;
+    transform: translateX(-50%);
+    animation-delay: 0.45s;
+  }
+
+  .jungle-firework--right {
+    right: 28%;
+    animation-delay: 0.9s;
+  }
+
+  @keyframes firework-pop {
+    0% {
+      transform: translateY(8px) scale(0.35);
+      opacity: 0;
+    }
+    25% {
+      transform: translateY(-8px) scale(1);
+      opacity: 1;
+    }
+    55% {
+      transform: translateY(-14px) scale(1.2);
+      opacity: 0.9;
+    }
+    100% {
+      transform: translateY(-20px) scale(1.45);
+      opacity: 0;
+    }
+  }
+
+  /* ── Cards con Brillo Amarillo ──────────────────────────────────────────── */
+  .card-jungle-glow {
+    position: relative;
+    background: rgba(10, 10, 10, 0.75);
+    border: 2px solid rgba(245, 194, 0, 0.2);
+    box-shadow: 
+      0 0 20px rgba(245, 194, 0, 0.15),
+      inset 0 0 20px rgba(245, 194, 0, 0.05);
+    transition: all 0.3s ease;
+  }
+
+  .card-jungle-glow:hover {
+    border-color: rgba(245, 194, 0, 0.6);
+    box-shadow: 
+      0 0 40px rgba(245, 194, 0, 0.4),
+      0 0 80px rgba(245, 194, 0, 0.2),
+      inset 0 0 30px rgba(245, 194, 0, 0.1);
+    transform: translateY(-4px);
+  }
+
+  /* ── Cards con Brillo Amarillo ──────────────────────────────────────────── */
+  .card-jungle-glow {
+    position: relative;
+    background: rgba(10, 10, 10, 0.75);
+    border: 2px solid rgba(245, 194, 0, 0.2);
+    box-shadow: 
+      0 0 20px rgba(245, 194, 0, 0.15),
+      inset 0 0 20px rgba(245, 194, 0, 0.05);
+    transition: all 0.3s ease;
+  }
+
+  .card-jungle-glow:hover {
+    border-color: rgba(245, 194, 0, 0.6);
+    box-shadow: 
+      0 0 40px rgba(245, 194, 0, 0.4),
+      0 0 80px rgba(245, 194, 0, 0.2),
+      inset 0 0 30px rgba(245, 194, 0, 0.1);
+    transform: translateY(-4px);
+  }
+
+  /* ── Fondo con Gradiente Jungla ────────────────────────────────────────── */
+  .jungle-bg {
+    position: relative;
+    background: linear-gradient(135deg, rgba(245, 194, 0, 0.02) 0%, transparent 100%);
+  }
+
+  /* ── Texto Destacado Amarillo ──────────────────────────────────────────── */
+  .text-jungle {
+    color: #F5C200;
+    text-shadow: 0 0 20px rgba(245, 194, 0, 0.3);
+    font-weight: 700;
+  }
+
+  /* ── Tema dinámico por evento ────────────────────────────── */
+  .evento-bg {
+    background:
+      radial-gradient(ellipse at top left, rgba(var(--evt-r, 245), var(--evt-g, 194), var(--evt-b, 0), 0.18) 0%, transparent 55%),
+      radial-gradient(ellipse at bottom right, rgba(var(--evt-r, 245), var(--evt-g, 194), var(--evt-b, 0), 0.12) 0%, transparent 55%);
+    transition: background 1.2s ease;
+  }
+  .evento-badge {
+    background: rgb(var(--evt-r, 245), var(--evt-g, 194), var(--evt-b, 0));
+    color: var(--evt-text, #000);
+    transition: background 1.2s ease, color 1.2s ease;
+  }
+  .evento-border {
+    border-color: rgba(var(--evt-r, 245), var(--evt-g, 194), var(--evt-b, 0), 0.35) !important;
+    transition: border-color 1.2s ease;
+  }
+  .evento-label {
+    color: rgb(var(--evt-r, 245), var(--evt-g, 194), var(--evt-b, 0));
+    transition: color 1.2s ease;
+  }
+  .evento-btn {
+    background: rgb(var(--evt-r, 245), var(--evt-g, 194), var(--evt-b, 0));
+    color: var(--evt-text, #000);
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 0.06em;
+    font-size: 1.1rem;
+    min-height: 48px;
+    transition: background 1.2s ease, color 1.2s ease, transform 0.2s ease;
+  }
+  .evento-btn:hover { opacity: 0.9; transform: scale(1.02); }
+  .evento-glow { box-shadow: 0 0 60px rgba(var(--evt-r, 245), var(--evt-g, 194), var(--evt-b, 0), 0.15); transition: box-shadow 1.2s ease; }
+  .evento-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(var(--evt-r, 245), var(--evt-g, 194), var(--evt-b, 0), 0.5), transparent);
+    transition: background 1.2s ease;
+  }
+
+  /* ── Safe area (iPhone con notch/Dynamic Island) ─────────── */
+  .safe-pb { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .safe-pt { padding-top: env(safe-area-inset-top, 0px); }
+
+  /* ── Hero Enhanced ───────────────────────────────────────── */
+  .jungle-hero-bg {
+    background:
+      radial-gradient(ellipse 90% 55% at 50% -5%, rgba(34, 197, 94, 0.14) 0%, transparent 60%),
+      radial-gradient(ellipse 55% 50% at 5% 95%, rgba(245, 194, 0, 0.09) 0%, transparent 55%),
+      radial-gradient(ellipse 55% 50% at 95% 95%, rgba(249, 115, 22, 0.07) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 30% at 50% 50%, rgba(245, 194, 0, 0.04) 0%, transparent 50%),
+      linear-gradient(180deg, #030303 0%, #000 100%);
+  }
+
+  .jungle-hero-grid {
+    background-image:
+      linear-gradient(rgba(245, 194, 0, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245, 194, 0, 0.035) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 75%);
+  }
+
+  .jungle-badge {
+    border: 1px solid rgba(245, 194, 0, 0.35);
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    animation: badge-shimmer 3s ease-in-out infinite;
+  }
+
+  @keyframes badge-shimmer {
+    0%, 100% {
+      box-shadow: 0 0 12px rgba(245, 194, 0, 0.12), inset 0 0 12px rgba(245, 194, 0, 0.04);
+      border-color: rgba(245, 194, 0, 0.35);
+    }
+    50% {
+      box-shadow: 0 0 32px rgba(245, 194, 0, 0.32), inset 0 0 22px rgba(245, 194, 0, 0.08);
+      border-color: rgba(245, 194, 0, 0.70);
+    }
+  }
+
+  .jungle-particle {
+    position: absolute;
+    border-radius: 9999px;
+    animation: float-particle-up var(--dur, 4s) ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+  }
+}
