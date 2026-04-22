@@ -33,3 +33,8 @@ Thumbs.db
 
 # Drizzle migrations (opcional — comenta si quieres versionar)
 lib/db/migrations/
+
+# macOS metadata files (AppleDouble)
+._*
+.AppleDouble
+.LSOverride
