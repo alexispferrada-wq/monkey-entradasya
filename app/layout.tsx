@@ -79,7 +79,7 @@ export default function RootLayout({
               {/* Logo */}
               <a href="/" className="flex items-center gap-2">
                 <img
-                  src="/monkey-logo.png"
+                  src="/monkey-logo-transparent.png"
                   alt="Monkey Restobar"
                   className="h-10 w-auto object-contain"
                 />

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { db } from '@/lib/db'
+import { db, hasDatabase } from '@/lib/db'
 import { reservas, eventos } from '@/lib/db/schema'
 import { eq, and, ne, sql, isNull } from 'drizzle-orm'
 
@@ -11,18 +11,38 @@ export const metadata: Metadata = {
   description: 'Reserva tu mesa en Monkey Restobar. Terraza gratuita, shows con preventa o celebra tu cumpleaños.',
 }
 
-export default async function ReservasPage() {
+type ReservasSearchParams = {
+  tipo?: string
+  evento?: string
+}
+
+function normalizarTipo(tipo?: string): 'normal' | 'show' | 'cumpleanos' | null {
+  if (tipo === 'normal' || tipo === 'show' || tipo === 'cumpleanos') return tipo
+  return null
+}
+
+export default async function ReservasPage({
+  searchParams,
+}: {
+  searchParams: Promise<ReservasSearchParams>
+}) {
+  const params = await searchParams
+  const tipoPreseleccionado = normalizarTipo(params.tipo)
+  const eventoFlyer = params.evento?.trim() || ''
+
   // Próximo show activo para mostrar en la card
-  const [proximoShow] = await db
-    .select()
-    .from(eventos)
-    .where(and(eq(eventos.activo, true), eq(eventos.tipo, 'regular'), isNull(eventos.deletedAt)))
-    .orderBy(eventos.fecha)
-    .limit(1)
+  const [proximoShow] = hasDatabase
+    ? await db
+        .select()
+        .from(eventos)
+        .where(and(eq(eventos.activo, true), eq(eventos.tipo, 'regular'), isNull(eventos.deletedAt)))
+        .orderBy(eventos.fecha)
+        .limit(1)
+    : []
 
   // Cupos restantes del próximo show
   let cuposRestantes: number | null = null
-  if (proximoShow && proximoShow.cuposReserva > 0) {
+  if (hasDatabase && proximoShow && proximoShow.cuposReserva > 0) {
     const [{ totalPersonas }] = await db
       .select({ totalPersonas: sql<number>`COALESCE(SUM(${reservas.personas}), 0)` })
       .from(reservas)
@@ -36,6 +56,11 @@ export default async function ReservasPage() {
       : 'Gratis'
     : 'Próximamente'
 
+  const showHref = eventoFlyer ? `/reservas/show?evento=${encodeURIComponent(eventoFlyer)}` : '/reservas/show'
+  const normalDestacada = tipoPreseleccionado === 'normal'
+  const showDestacada = tipoPreseleccionado === 'show'
+  const cumpleDestacada = tipoPreseleccionado === 'cumpleanos'
+
   return (
     <main className="min-h-screen pt-20 pb-safe-bottom bg-zinc-950">
       <div className="max-w-lg mx-auto px-4 py-8">
@@ -47,7 +72,23 @@ export default async function ReservasPage() {
             Reservas
           </h1>
           <p className="text-zinc-400 text-sm">
-            Elige el tipo de reserva que necesitas
+            Link maestro de reservas. Elige un tipo y completa tus datos.
+          </p>
+        </div>
+
+        {(tipoPreseleccionado || eventoFlyer) && (
+          <div className="mb-4 rounded-xl border border-primary/30 bg-primary/10 px-4 py-3 text-xs sm:text-sm text-zinc-200">
+            {tipoPreseleccionado
+              ? `Llegaste desde un flyer con preferencia en: ${tipoPreseleccionado === 'normal' ? 'Fin de semana' : tipoPreseleccionado === 'show' ? 'Show' : 'Cumpleaños'}.`
+              : 'Llegaste desde un flyer de evento.'}{' '}
+            Si necesitas, puedes cambiar de tipo aquí mismo.
+          </div>
+        )}
+
+        <div className="mb-5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+          <p className="text-amber-200 text-xs sm:text-sm leading-relaxed">
+            <strong>Importante:</strong> Todas las reservas tienen una tolerancia máxima de 15 minutos desde la hora indicada.
+            Pasado ese tiempo, la mesa puede liberarse.
           </p>
         </div>
 
@@ -56,7 +97,11 @@ export default async function ReservasPage() {
 
           {/* Mesa Normal — Terraza */}
           <Link href="/reservas/normal" className="group block">
-            <div className="glass-card rounded-2xl p-5 border border-white/10 hover:border-green-500/40 active:scale-[0.98] transition-all duration-200">
+            <div
+              className={`glass-card rounded-2xl p-5 border hover:border-green-500/40 active:scale-[0.98] transition-all duration-200 ${
+                normalDestacada ? 'border-green-500/60 ring-1 ring-green-500/50' : 'border-white/10'
+              }`}
+            >
               <div className="flex items-start gap-4">
                 <div className="text-3xl shrink-0">🏖️</div>
                 <div className="flex-1 min-w-0">
@@ -69,8 +114,8 @@ export default async function ReservasPage() {
                     </span>
                   </div>
                   <p className="text-zinc-400 text-sm leading-relaxed">
-                    Reserva tu mesa para el fin de semana. Sin costo, sujeto a disponibilidad.
-                    Llega a la hora indicada.
+                    Reserva de fin de semana para mesa normal. Sin costo, sujeto a disponibilidad.
+                    Ingresa nombre, apellido, personas y hora de llegada.
                   </p>
                   <div className="mt-3 flex items-center gap-1 text-green-400 text-sm font-bold">
                     Reservar mesa →
@@ -81,8 +126,12 @@ export default async function ReservasPage() {
           </Link>
 
           {/* Show / Evento */}
-          <Link href="/reservas/show" className="group block">
-            <div className="glass-card rounded-2xl p-5 border border-white/10 hover:border-primary/40 active:scale-[0.98] transition-all duration-200">
+          <Link href={showHref} className="group block">
+            <div
+              className={`glass-card rounded-2xl p-5 border hover:border-primary/40 active:scale-[0.98] transition-all duration-200 ${
+                showDestacada ? 'border-primary/70 ring-1 ring-primary/60' : 'border-white/10'
+              }`}
+            >
               <div className="flex items-start gap-4">
                 <div className="text-3xl shrink-0">🎫</div>
                 <div className="flex-1 min-w-0">
@@ -111,7 +160,7 @@ export default async function ReservasPage() {
                     </>
                   ) : (
                     <p className="text-zinc-400 text-sm leading-relaxed">
-                      Shows con artistas. Requiere comprobante de pago cuando hay preventa.
+                      Shows con artistas y preventas. Si el show es pagado, debes adjuntar comprobante.
                     </p>
                   )}
                   <div className="mt-3 flex items-center gap-1 text-primary text-sm font-bold">
@@ -124,7 +173,11 @@ export default async function ReservasPage() {
 
           {/* Cumpleaños */}
           <Link href="/cumpleanos/nuevo" className="group block">
-            <div className="glass-card rounded-2xl p-5 border border-white/10 hover:border-purple-500/40 active:scale-[0.98] transition-all duration-200">
+            <div
+              className={`glass-card rounded-2xl p-5 border hover:border-purple-500/40 active:scale-[0.98] transition-all duration-200 ${
+                cumpleDestacada ? 'border-purple-500/70 ring-1 ring-purple-500/60' : 'border-white/10'
+              }`}
+            >
               <div className="flex items-start gap-4">
                 <div className="text-3xl shrink-0">🎂</div>
                 <div className="flex-1 min-w-0">
@@ -137,8 +190,8 @@ export default async function ReservasPage() {
                     </span>
                   </div>
                   <p className="text-zinc-400 text-sm leading-relaxed">
-                    Celebra tu cumpleaños con nosotros. Creamos un evento privado con
-                    QR personal para cada invitado.
+                    Reserva de cumpleaños con revisión administrativa de pago y condiciones.
+                    Flujo compatible con correo, QR y validación.
                   </p>
                   <div className="mt-3 flex items-center gap-1 text-purple-400 text-sm font-bold">
                     Organizar celebración →

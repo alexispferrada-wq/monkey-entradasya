@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { db } from '@/lib/db'
+import { db, hasDatabase } from '@/lib/db'
 import { reservas, eventos } from '@/lib/db/schema'
 import { eq, and, ne, sql, isNull } from 'drizzle-orm'
 import ShowForm, { type ShowEvento } from './ShowForm'
@@ -30,19 +30,28 @@ function formatFechaReserva(date: Date): string {
   return `${dd}/${mm}/${yyyy}`
 }
 
-export default async function ReservaShowPage() {
+export default async function ReservaShowPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ evento?: string }>
+}) {
+  const params = await searchParams
+  const eventoParam = params.evento?.trim().toLowerCase() || ''
+
   // Traer eventos activos regulares (no cumpleaños, no eliminados)
-  const eventosActivos = await db
-    .select()
-    .from(eventos)
-    .where(
-      and(
-        eq(eventos.activo, true),
-        eq(eventos.tipo, 'regular'),
-        isNull(eventos.deletedAt),
-      )
-    )
-    .orderBy(eventos.fecha)
+  const eventosActivos = hasDatabase
+    ? await db
+        .select()
+        .from(eventos)
+        .where(
+          and(
+            eq(eventos.activo, true),
+            eq(eventos.tipo, 'regular'),
+            isNull(eventos.deletedAt),
+          )
+        )
+        .orderBy(eventos.fecha)
+    : []
 
   // Para cada evento, calcular cupos usados por reservas de show no rechazadas
   const showEventos: ShowEvento[] = await Promise.all(
@@ -69,6 +78,7 @@ export default async function ReservaShowPage() {
 
       return {
         id: ev.id,
+        slug: ev.slug,
         nombre: ev.nombre,
         fechaDisplay: formatFechaDisplay(fechaDate),
         fechaReserva: formatFechaReserva(fechaDate),
@@ -78,6 +88,11 @@ export default async function ReservaShowPage() {
       }
     })
   )
+
+  const initialEventoId =
+    showEventos.find((ev) => ev.id.toLowerCase() === eventoParam || ev.slug.toLowerCase() === eventoParam)?.id ??
+    showEventos[0]?.id ??
+    ''
 
   return (
     <main className="min-h-screen pt-20 pb-safe-bottom bg-zinc-950">
@@ -110,7 +125,7 @@ export default async function ReservaShowPage() {
         </div>
 
         <div className="glass-card rounded-2xl p-5">
-          <ShowForm eventos={showEventos} />
+          <ShowForm eventos={showEventos} initialEventoId={initialEventoId} />
         </div>
 
       </div>

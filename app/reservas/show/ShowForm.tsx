@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 
 export type ShowEvento = {
   id: string
+  slug: string
   nombre: string
   fechaDisplay: string   // Ej: "sábado 30 de mayo de 2025"
   fechaReserva: string   // 'DD/MM/YYYY' para el API
@@ -14,11 +15,17 @@ export type ShowEvento = {
   cuposRestantes: number // -1 = sin límite
 }
 
-export default function ShowForm({ eventos }: { eventos: ShowEvento[] }) {
+export default function ShowForm({
+  eventos,
+  initialEventoId,
+}: {
+  eventos: ShowEvento[]
+  initialEventoId?: string
+}) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [selectedId, setSelectedId] = useState(eventos[0]?.id ?? '')
+  const [selectedId, setSelectedId] = useState(initialEventoId || eventos[0]?.id || '')
   const selectedEvento = eventos.find((e) => e.id === selectedId) ?? eventos[0]
 
   const [form, setForm] = useState({

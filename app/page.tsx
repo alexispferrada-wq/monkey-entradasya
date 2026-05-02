@@ -1,4 +1,4 @@
-import { db } from '@/lib/db'
+import { db, hasDatabase } from '@/lib/db'
 import { eventos } from '@/lib/db/schema'
 import { eq, and, isNull } from 'drizzle-orm'
 import Link from 'next/link'
@@ -9,11 +9,13 @@ export const revalidate = 60
 
 
 export default async function Home() {
-  const eventosActivos = await db
-    .select()
-    .from(eventos)
-    .where(and(eq(eventos.activo, true), isNull(eventos.deletedAt)))
-    .orderBy(eventos.fecha)
+  const eventosActivos = hasDatabase
+    ? await db
+        .select()
+        .from(eventos)
+        .where(and(eq(eventos.activo, true), isNull(eventos.deletedAt)))
+        .orderBy(eventos.fecha)
+    : []
 
   const destacados = eventosActivos.filter((e) => e.destacado)
   // restantes: todos los no-destacados (incluye cumpleaños) → SectorEventos los separa internamente
@@ -64,6 +66,11 @@ export default async function Home() {
       {/* Reservas rápidas */}
       <section className="pb-8 sm:pb-10 px-4 jungle-bg">
         <div className="max-w-5xl mx-auto">
+          {!hasDatabase && (
+            <div className="mb-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-xs sm:text-sm text-yellow-200">
+              Modo mock temporal activo: configura DATABASE_URL para ver datos reales.
+            </div>
+          )}
           <div className="flex items-center gap-2 mb-4">
             <span className="text-primary text-sm">📌</span>
             <span className="text-xs font-bold uppercase tracking-widest text-jungle">Reservas</span>

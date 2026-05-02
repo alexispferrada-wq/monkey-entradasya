@@ -1,4 +1,4 @@
-import { db } from '@/lib/db'
+import { db, hasDatabase } from '@/lib/db'
 import { eventos } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
@@ -25,6 +25,8 @@ function ogImageUrl(url: string): string {
 
 // ─── Metadata dinámica por evento ─────────────────────────────
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  if (!hasDatabase) return { title: 'Evento — Monkey Restobar' }
+
   const { evento: slug } = await params
   const [evento] = await db
     .select()
@@ -84,6 +86,8 @@ function formatFechaCompleta(fecha: Date): string {
 }
 
 export default async function EventoPage({ params }: Props) {
+  if (!hasDatabase) notFound()
+
   const { evento: eventoSlug } = await params
   const [evento] = await db
     .select()
